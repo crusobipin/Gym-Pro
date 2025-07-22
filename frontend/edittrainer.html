@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+    .main-content {
+        margin-left: 260px;
+        transition: margin-left 0.3s;
+        padding: 32px 24px 24px 24px;
+        min-height: 100vh;
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 64px;
+            padding: 24px 8px 16px 8px;
+        }
+    }
+    .form-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .form-card h2 {
+        margin-bottom: 24px;
+        font-size: 1.5rem;
+        color: #1e293b;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #475569;
+        font-weight: 500;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 1rem;
+        background: #f1f5f9;
+        color: #334155;
+        outline: none;
+        transition: border 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+        border-color: #667eea;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 18px;
+    }
+    .btn-primary {
+        background: #667eea;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+    .form-message {
+        margin-bottom: 16px;
+        text-align: center;
+        font-weight: 500;
+    }
+    </style>
+</head>
+<body>
+    <div id="main-content" class="main-content"></div>
+    <script>
+    // Helper to get query param
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+
+    // Render Edit Trainer form
+    function renderEditTrainerForm(trainer) {
+        document.getElementById('main-content').innerHTML = `
+        <div class="form-card">
+            <h2>Edit Trainer</h2>
+            <form id="editTrainerForm">
+                <div class="form-message" id="formMessage"></div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" value="${trainer.name || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="${trainer.email || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="startTime">Start Time</label>
+                    <input type="time" id="startTime" name="startTime" value="${trainer.startTime || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="endTime">End Time</label>
+                    <input type="time" id="endTime" name="endTime" value="${trainer.endTime || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" name="type" required>
+                        <option value="Cardio" ${trainer.type === 'Cardio' ? 'selected' : ''}>Cardio</option>
+                        <option value="Strength" ${trainer.type === 'Strength' ? 'selected' : ''}>Strength</option>
+                        <option value="Flexibility" ${trainer.type === 'Flexibility' ? 'selected' : ''}>Flexibility</option>
+                        <option value="Free Weights" ${trainer.type === 'Free Weights' ? 'selected' : ''}>Free Weights</option>
+                        <option value="Machine" ${trainer.type === 'Machine' ? 'selected' : ''}>Machine</option>
+                        <option value="Other" ${trainer.type === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="experience">Experience</label>
+                    <select id="experience" name="experience" required>
+                        <option value="Beginner" ${trainer.experience === 'Beginner' ? 'selected' : ''}>Beginner</option>
+                        <option value="Intermediate" ${trainer.experience === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
+                        <option value="Advanced" ${trainer.experience === 'Advanced' ? 'selected' : ''}>Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="text" id="phone" name="phone" value="${trainer.phone || ''}" required />
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Update Trainer</button>
+                </div>
+            </form>
+        </div>
+        `;
+    }
+
+    // Fetch trainer data and render form
+    async function loadTrainerAndRenderForm() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        const id = getQueryParam('id');
+        if (!id) {
+            document.getElementById('main-content').innerHTML = '<p style="color:red;">No trainer ID provided.</p>';
+            return;
+        }
+        try {
+            const res = await fetch(`http://localhost:3000/api/trainer/get-trainer/${id}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const trainer = await res.json();
+                renderEditTrainerForm(trainer);
+                attachEditFormHandler(id);
+            } else if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('main-content').innerHTML = '<p style="color:red;">Failed to load trainer data.</p>';
+            }
+        } catch (err) {
+            document.getElementById('main-content').innerHTML = '<p style="color:red;">Error loading trainer data.</p>';
+        }
+    }
+
+    // Handle form submission
+    function attachEditFormHandler(id) {
+        document.getElementById('editTrainerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const form = e.target;
+            const data = {
+                name: form.name.value.trim(),
+                email: form.email.value.trim(),
+                startTime: form.startTime.value,
+                endTime: form.endTime.value,
+                type: form.type.value,
+                experience: form.experience.value,
+                phone: form.phone.value.trim()
+            };
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.textContent = '';
+            try {
+                const res = await fetch(`http://localhost:3000/api/trainer/edit-trainer/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = 'Trainer updated successfully!';
+                    setTimeout(() => window.location.href = './trainers.html', 1200);
+                } else if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                } else {
+                    const err = await res.json();
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = err.message || 'Failed to update trainer.';
+                }
+            } catch (err) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Error updating trainer.';
+            }
+        });
+    }
+
+    // On page load
+    document.addEventListener('DOMContentLoaded', loadTrainerAndRenderForm);
+    </script>
+</body>
+</html>

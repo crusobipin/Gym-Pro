@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register Gym & Owner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 500px;
+      backdrop-filter: blur(10px);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 1.5rem;
+      background-color: #ffd93d;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Register Gym & Owner</h2>
+    <form id="registerForm">
+      <label for="username">Owner Name</label>
+      <input type="text" id="username" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" required>
+
+      <label for="gym_name">Gym Name</label>
+      <input type="text" id="gym_name" required>
+
+      <label for="gym_address">Gym Address</label>
+      <input type="text" id="gym_address" required>
+
+      <label for="gym_contactNumber">Contact Number</label>
+      <input type="text" id="gym_contactNumber" required>
+
+      <label for="openingHours">Opening Hours</label>
+      <input type="text" id="openingHours" placeholder="e.g. 6:00 AM - 10:00 PM">
+
+      <button type="submit">Register</button>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+
+  <script>
+       if (localStorage.getItem("token")) {
+      window.location.href = "./dashboard.html"; // change as needed
+    }
+    document.getElementById("registerForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const data = {
+        username: document.getElementById("username").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        gym_name: document.getElementById("gym_name").value,
+        gym_address: document.getElementById("gym_address").value,
+        gym_contactNumber: document.getElementById("gym_contactNumber").value,
+        openingHours: document.getElementById("openingHours").value,
+      };
+
+      try {
+        const res = await fetch("http://localhost:3000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await res.json();
+        const messageDiv = document.getElementById("message");
+
+        if (res.ok) {
+          messageDiv.innerText = "Gym & admin registered successfully!";
+          messageDiv.style.color = "lightgreen";
+          console.log("Token:", result.token);
+          // Save token and redirect
+          localStorage.setItem("token", result.token);
+          window.location.href = "./Dashboard.html"; // change as needed
+        } else {
+          messageDiv.innerText = result.message || "Registration failed";
+          messageDiv.style.color = "red";
+        }
+      } catch (error) {
+        console.error(error);
+        document.getElementById("message").innerText = "Server error";
+      }
+    });
+  </script>
+</body>
+</html>

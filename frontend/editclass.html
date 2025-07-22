@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Gym Class</title>
+    <style>
+    .main-content {
+        margin-left: 260px;
+        transition: margin-left 0.3s;
+        padding: 32px 24px 24px 24px;
+        min-height: 100vh;
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 64px;
+            padding: 24px 8px 16px 8px;
+        }
+    }
+    .form-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .form-card h2 {
+        margin-bottom: 24px;
+        font-size: 1.5rem;
+        color: #1e293b;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #475569;
+        font-weight: 500;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 1rem;
+        background: #f1f5f9;
+        color: #334155;
+        outline: none;
+        transition: border 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: #667eea;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 18px;
+    }
+    .btn-primary {
+        background: #667eea;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+    .form-message {
+        margin-bottom: 16px;
+        text-align: center;
+        font-weight: 500;
+    }
+    </style>
+</head>
+<body>
+    <div id="main-content" class="main-content"></div>
+    <script>
+    // Helper to get query param
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+
+    // Render Edit Gym Class form
+    function renderEditClassForm(gymClass) {
+        document.getElementById('main-content').innerHTML = `
+        <div class="form-card">
+            <h2>Edit Gym Class</h2>
+            <form id="editClassForm">
+                <div class="form-message" id="formMessage"></div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" value="${gymClass.name || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="2" required>${gymClass.description || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="instructor">Instructor</label>
+                    <input type="text" id="instructor" name="instructor" value="${gymClass.instructor || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" value="${gymClass.location || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="difficulty">Difficulty</label>
+                    <select id="difficulty" name="difficulty" required>
+                        <option value="Beginner" ${gymClass.difficulty === 'Beginner' ? 'selected' : ''}>Beginner</option>
+                        <option value="Intermediate" ${gymClass.difficulty === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
+                        <option value="Advanced" ${gymClass.difficulty === 'Advanced' ? 'selected' : ''}>Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="isCancelled" name="isCancelled" ${gymClass.isCancelled ? 'checked' : ''} />
+                    <label for="isCancelled" style="margin-bottom:0;">Is Cancelled</label>
+                </div>
+                <div class="form-group">
+                    <label for="startTime">Start Time</label>
+                    <input type="time" id="startTime" name="startTime" value="${gymClass.startTime || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="endTime">End Time</label>
+                    <input type="time" id="endTime" name="endTime" value="${gymClass.endTime || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="capacity">Capacity</label>
+                    <input type="number" id="capacity" name="capacity" min="1" value="${gymClass.capacity || ''}" required />
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Update Class</button>
+                </div>
+            </form>
+        </div>
+        `;
+    }
+
+    // Fetch class data and render form
+    async function loadClassAndRenderForm() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        const id = getQueryParam('id');
+        if (!id) {
+            document.getElementById('main-content').innerHTML = '<p style="color:red;">No class ID provided.</p>';
+            return;
+        }
+        try {
+            const res = await fetch(`http://localhost:3000/api/gymClasses/get-class/${id}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const gymClass = await res.json();
+                renderEditClassForm(gymClass);
+                attachEditFormHandler(id);
+            } else if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('main-content').innerHTML = '<p style="color:red;">Failed to load class data.</p>';
+            }
+        } catch (err) {
+            document.getElementById('main-content').innerHTML = '<p style="color:red;">Error loading class data.</p>';
+        }
+    }
+
+    // Handle form submission
+    function attachEditFormHandler(id) {
+        document.getElementById('editClassForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const form = e.target;
+            const data = {
+                name: form.name.value.trim(),
+                description: form.description.value.trim(),
+                instructor: form.instructor.value.trim(),
+                location: form.location.value.trim(),
+                difficulty: form.difficulty.value,
+                isCancelled: form.isCancelled.checked,
+                startTime: form.startTime.value,
+                endTime: form.endTime.value,
+                capacity: parseInt(form.capacity.value, 10)
+            };
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.textContent = '';
+            try {
+                const res = await fetch(`http://localhost:3000/api/gymClasses/edit-class/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = 'Class updated successfully!';
+                    setTimeout(() => window.location.href = './classes.html', 1200);
+                } else if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                } else {
+                    const err = await res.json();
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = err.message || 'Failed to update class.';
+                }
+            } catch (err) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Error updating class.';
+            }
+        });
+    }
+
+    // On page load
+    document.addEventListener('DOMContentLoaded', loadClassAndRenderForm);
+    </script>
+</body>
+</html>

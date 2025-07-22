@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .plans-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 32px;
+            margin: 40px 0;
+        }
+        .plan-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(102,126,234,0.08), 0 1.5px 4px rgba(0,0,0,0.04);
+            padding: 36px 28px 32px 28px;
+            max-width: 340px;
+            min-width: 260px;
+            flex: 1 1 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid #e0e7ff;
+            position: relative;
+        }
+        .plan-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 8px 32px rgba(102,126,234,0.18), 0 2px 8px rgba(0,0,0,0.08);
+            border-color: #667eea;
+        }
+        .plan-icon {
+            font-size: 2.5rem;
+            margin-bottom: 18px;
+            color: #667eea;
+        }
+        .plan-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1e293b;
+            letter-spacing: 1px;
+        }
+        .plan-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+        .plan-duration {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 18px;
+        }
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 24px 0;
+            width: 100%;
+        }
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            color: #475569;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .plan-features li i {
+            min-width: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .plan-features li .fa-check {
+            color: #22c55e;
+        }
+        .plan-features li .fa-xmark {
+            color: #ef4444;
+        }
+        .plan-btn {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: auto;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+        }
+        .plan-btn:hover {
+            background: #4f46e5;
+        }
+        .plan-badge {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: #fbbf24;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+        @media (max-width: 900px) {
+            .plans-section {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        .main-content {
+            margin-left: 260px;
+            transition: margin-left 0.3s;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 64px;
+            }
+        }
+        </style>
+</head>
+<body>
+    <div id="navbar"></div>
+    <div id="main-content" class="main-content">
+        <div class="plans-section">
+            <div class="plan-card">
+                <i class="fa-solid fa-leaf plan-icon"></i>
+                <div class="plan-title">Basic</div>
+                <div class="plan-price">Rs. 999</div>
+                <div class="plan-duration">1 Month</div>
+                <ul class="plan-features">
+                    <li><i class="fa-solid fa-check"></i>Access to gym floor</li>
+                    <li><i class="fa-solid fa-check"></i>Locker room access</li>
+                    <li><i class="fa-solid fa-xmark"></i>Group classes</li>
+                    <li><i class="fa-solid fa-xmark"></i>Personal trainer</li>
+                    <li><i class="fa-solid fa-xmark"></i>Nutrition consultation</li>
+                    <li><i class="fa-solid fa-xmark"></i>Priority support</li>
+                </ul>
+                <button class="plan-btn">Choose Basic</button>
+            </div>
+            <div class="plan-card">
+                <span class="plan-badge">Most Popular</span>
+                <i class="fa-solid fa-dumbbell plan-icon"></i>
+                <div class="plan-title">Average</div>
+                <div class="plan-price">Rs. 2,499</div>
+                <div class="plan-duration">3 Months</div>
+                <ul class="plan-features">
+                    <li><i class="fa-solid fa-check"></i>Access to gym floor</li>
+                    <li><i class="fa-solid fa-check"></i>Locker room access</li>
+                    <li><i class="fa-solid fa-check"></i>Group classes</li>
+                    <li><i class="fa-solid fa-check"></i>Personal trainer (2 sessions/month)</li>
+                    <li><i class="fa-solid fa-xmark"></i>Nutrition consultation</li>
+                    <li><i class="fa-solid fa-xmark"></i>Priority support</li>
+                </ul>
+                <button class="plan-btn">Choose Average</button>
+            </div>
+            <div class="plan-card">
+                <i class="fa-solid fa-crown plan-icon"></i>
+                <div class="plan-title">Pro</div>
+                <div class="plan-price">Rs. 6,999</div>
+                <div class="plan-duration">12 Months</div>
+                <ul class="plan-features">
+                    <li><i class="fa-solid fa-check"></i>Access to gym floor</li>
+                    <li><i class="fa-solid fa-check"></i>Locker room access</li>
+                    <li><i class="fa-solid fa-check"></i>Group classes</li>
+                    <li><i class="fa-solid fa-check"></i>Personal trainer (unlimited)</li>
+                    <li><i class="fa-solid fa-check"></i>Nutrition consultation</li>
+                    <li><i class="fa-solid fa-check"></i>Priority support</li>
+                </ul>
+                <button class="plan-btn">Choose Pro</button>
+            </div>
+        </div>
+    </div>
+    <script src="load-navbar.js"></script>
+    <script src="sidebar.js"></script>
+</body>
+</html>

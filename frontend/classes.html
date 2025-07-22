@@ -1,0 +1,261 @@
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+    .main-content {
+        margin-left: 260px;
+        transition: margin-left 0.3s;
+        padding: 32px 24px 24px 24px;
+        min-height: 100vh;
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 64px;
+            padding: 24px 8px 16px 8px;
+        }
+    }
+    .classes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 28px;
+        margin: 0 24px 24px 24px;
+    }
+    .class-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(102,126,234,0.08), 0 1.5px 4px rgba(0,0,0,0.04);
+        padding: 28px 22px 20px 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .class-card:hover {
+        box-shadow: 0 8px 32px rgba(102,126,234,0.18), 0 2px 8px rgba(0,0,0,0.08);
+        transform: translateY(-4px) scale(1.01);
+    }
+    .class-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 10px;
+    }
+    .class-avatar {
+        background: #e0e7ff;
+        color: #667eea;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.7rem;
+        font-weight: 700;
+    }
+    .class-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .class-info {
+        margin-bottom: 8px;
+        color: #475569;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .class-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 10px;
+        color: #64748b;
+        font-size: 0.98rem;
+    }
+    .class-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    .edit-btn, .delete-btn {
+        border: none;
+        border-radius: 6px;
+        padding: 7px 16px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transition: background 0.2s;
+    }
+    .edit-btn {
+        background: #fbbf24;
+        color: #fff;
+    }
+    .edit-btn:hover {
+        background: #f59e42;
+    }
+    .delete-btn {
+        background: #ef4444;
+        color: #fff;
+    }
+    .delete-btn:hover {
+        background: #dc2626;
+    }
+    .no-classes {
+        text-align: center;
+        color: #64748b;
+        font-size: 1.2rem;
+        margin: 40px 0;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="navbar"></div>
+    <div class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 32px 24px 16px 24px;">
+            <h1 style="margin: 0; font-size: 2rem;">Classes</h1>
+            <button id="addClassBtn" style="background: #667eea; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 1rem; font-weight: 600; cursor: pointer; display:none;">+ Add Class</button>
+        </div>
+        <div id="classes-container"></div>
+    </div>
+    <script src="load-navbar.js"></script>
+    <script src="sidebar.js"></script>  
+    <script>
+    // Helper to decode JWT and get payload
+    function parseJwt(token) {
+        try {
+            return JSON.parse(atob(token.split('.')[1]));
+        } catch (e) {
+            return null;
+        }
+    }
+    // Get user role from token
+    function getUserRole() {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        const payload = parseJwt(token);
+        return payload && payload.role ? payload.role : null;
+    }
+    const isAdmin = getUserRole() === 'admin';
+
+    async function fetchClasses() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        try {
+            const res = await fetch('http://localhost:3000/api/gymClasses/get-classes', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const classes = await res.json();
+                renderClasses(classes);
+            }else if(res.status === 404){
+                document.getElementById('classes-container').innerHTML = '<div class="no-classes">No classes found.</div>';
+            }
+             else if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('classes-container').innerHTML = '<p style="color:red;">Failed to load classes.</p>';
+            }
+        } catch (err) {
+            document.getElementById('classes-container').innerHTML = '<p style="color:red;">Error loading classes.</p>';
+        }
+    }
+
+    function renderClasses(classes) {
+        if (!Array.isArray(classes) || classes.length === 0) {
+            document.getElementById('classes-container').innerHTML = '<div class="no-classes">No classes found.</div>';
+            return;
+        }
+        let html = '<div class="classes-grid">';
+        for (const gymClass of classes) {
+            html += `<div class="class-card">
+                <div class="class-header">
+                    <div class="class-avatar"><i class="fa-solid fa-calendar-days"></i></div>
+                    <div class="class-name">${gymClass.name || ''}</div>
+                </div>
+                <div class="class-info"><i class="fa-solid fa-chalkboard-teacher"></i> ${gymClass.instructor || ''}</div>
+                <div class="class-info"><i class="fa-solid fa-location-dot"></i> ${gymClass.location || ''}</div>
+                <div class="class-details">
+                    <span><i class="fa-solid fa-clock"></i> ${gymClass.startTime || ''} - ${gymClass.endTime || ''}</span>
+                    <span><i class="fa-solid fa-users"></i> ${gymClass.capacity || ''}</span>
+                </div>
+                <div class="class-info"><i class="fa-solid fa-mountain"></i> ${gymClass.difficulty || ''}</div>
+                <div class="class-info"><i class="fa-solid fa-ban"></i> ${gymClass.isCancelled ? 'Cancelled' : 'Active'}</div>
+                ${isAdmin ? `<div class="class-actions">
+                    <button class="edit-btn" data-id="${gymClass._id}"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="delete-btn" data-id="${gymClass._id}"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>` : ''}
+            </div>`;
+        }
+        html += '</div>';
+        document.getElementById('classes-container').innerHTML = html;
+
+        if (isAdmin) {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    window.location.href = `./editclass.html?id=${id}`;
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const id = this.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this class?')) {
+                        await deleteClass(id);
+                    }
+                });
+            });
+        }
+    }
+
+    async function deleteClass(id) {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`http://localhost:3000/api/gymClasses/delete-class/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                fetchClasses();
+            } else {
+                alert('Failed to delete class.');
+            }
+        } catch (err) {
+            alert('Error deleting class.');
+        }
+    }
+
+    // Add Class button click
+    if (isAdmin) {
+        document.getElementById('addClassBtn').style.display = '';
+        document.getElementById('addClassBtn').addEventListener('click', function() {
+            // TODO: Implement add class modal or page
+            window.location.href = './addclasses.html';
+        });
+    } else {
+        document.getElementById('addClassBtn').style.display = 'none';
+    }
+
+    // Initial fetch
+    fetchClasses();
+    </script>
+  </body>
+  </html>

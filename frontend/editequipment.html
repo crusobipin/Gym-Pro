@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Equipment</title>
+    <style>
+    .main-content {
+        margin-left: 260px;
+        transition: margin-left 0.3s;
+        padding: 32px 24px 24px 24px;
+        min-height: 100vh;
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 64px;
+            padding: 24px 8px 16px 8px;
+        }
+    }
+    .form-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .form-card h2 {
+        margin-bottom: 24px;
+        font-size: 1.5rem;
+        color: #1e293b;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #475569;
+        font-weight: 500;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 1rem;
+        background: #f1f5f9;
+        color: #334155;
+        outline: none;
+        transition: border 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+        border-color: #667eea;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 18px;
+    }
+    .btn-primary {
+        background: #667eea;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+    .form-message {
+        margin-bottom: 16px;
+        text-align: center;
+        font-weight: 500;
+    }
+    </style>
+</head>
+<body>
+    <div id="main-content" class="main-content"></div>
+    <script>
+    // Helper to get query param
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+
+    // Render Edit Equipment form
+    function renderEditEquipmentForm(equipment) {
+        document.getElementById('main-content').innerHTML = `
+        <div class="form-card">
+            <h2>Edit Equipment</h2>
+            <form id="editEquipmentForm">
+                <div class="form-message" id="formMessage"></div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" value="${equipment.name || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" name="type" required>
+                        <option value="Cardio" ${equipment.type === 'Cardio' ? 'selected' : ''}>Cardio</option>
+                        <option value="Strength" ${equipment.type === 'Strength' ? 'selected' : ''}>Strength</option>
+                        <option value="Flexibility" ${equipment.type === 'Flexibility' ? 'selected' : ''}>Flexibility</option>
+                        <option value="Free Weights" ${equipment.type === 'Free Weights' ? 'selected' : ''}>Free Weights</option>
+                        <option value="Machine" ${equipment.type === 'Machine' ? 'selected' : ''}>Machine</option>
+                        <option value="Other" ${equipment.type === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="brand">Brand</label>
+                    <input type="text" id="brand" name="brand" value="${equipment.brand || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="model">Model</label>
+                    <input type="text" id="model" name="model" value="${equipment.model || ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">Purchase Date</label>
+                    <input type="date" id="purchaseDate" name="purchaseDate" value="${equipment.purchaseDate ? equipment.purchaseDate.split('T')[0] : ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="condition">Condition</label>
+                    <select id="condition" name="condition" required>
+                        <option value="New" ${equipment.condition === 'New' ? 'selected' : ''}>New</option>
+                        <option value="Good" ${equipment.condition === 'Good' ? 'selected' : ''}>Good</option>
+                        <option value="Needs Maintenance" ${equipment.condition === 'Needs Maintenance' ? 'selected' : ''}>Needs Maintenance</option>
+                        <option value="Out of Order" ${equipment.condition === 'Out of Order' ? 'selected' : ''}>Out of Order</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="lastMaintenance">Last Maintenance</label>
+                    <input type="date" id="lastMaintenance" name="lastMaintenance" value="${equipment.lastMaintenance ? equipment.lastMaintenance.split('T')[0] : ''}" required />
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" value="${equipment.location || ''}" required />
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Update Equipment</button>
+                </div>
+            </form>
+        </div>
+        `;
+    }
+
+    // Fetch equipment data and render form
+    async function loadEquipmentAndRenderForm() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        const id = getQueryParam('id');
+        if (!id) {
+            document.getElementById('main-content').innerHTML = '<p style="color:red;">No equipment ID provided.</p>';
+            return;
+        }
+        try {
+            const res = await fetch(`http://localhost:3000/api/equipment/get-equipment/${id}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            if (res.ok) {
+                const equipment = await res.json();
+                renderEditEquipmentForm(equipment);
+                attachEditFormHandler(id);
+            } else if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('main-content').innerHTML = '<p style="color:red;">Failed to load equipment data.</p>';
+            }
+        } catch (err) {
+            document.getElementById('main-content').innerHTML = '<p style="color:red;">Error loading equipment data.</p>';
+        }
+    }
+
+    // Handle form submission
+    function attachEditFormHandler(id) {
+        document.getElementById('editEquipmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const form = e.target;
+            const data = {
+                name: form.name.value.trim(),
+                type: form.type.value,
+                brand: form.brand.value.trim(),
+                model: form.model.value.trim(),
+                purchaseDate: form.purchaseDate.value,
+                condition: form.condition.value,
+                lastMaintenance: form.lastMaintenance.value,
+                location: form.location.value.trim()
+            };
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.textContent = '';
+            try {
+                const res = await fetch(`http://localhost:3000/api/equipment/edit-equipment/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = 'Equipment updated successfully!';
+                    setTimeout(() => window.location.href = './equipment.html', 1200);
+                } else if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                } else {
+                    const err = await res.json();
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = err.message || 'Failed to update equipment.';
+                }
+            } catch (err) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Error updating equipment.';
+            }
+        });
+    }
+
+    // On page load
+    document.addEventListener('DOMContentLoaded', loadEquipmentAndRenderForm);
+    </script>
+</body>
+</html>
