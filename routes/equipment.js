@@ -1,0 +1,10 @@
+const express = require("express");
+const router = express.Router();
+const { addEquipment, getEquipment, getEquipmentById, deleteEquipment, editEquipment } = require("../controllers/Equipment-controller");
+const authMiddleware = require("../middleware/auth-middleware");
+router.post("/add-equipment", authMiddleware, addEquipment);
+router.get("/get-equipment", authMiddleware, getEquipment);
+router.get("/get-equipment/:id", authMiddleware, getEquipmentById);
+router.delete("/delete-equipment/:id", authMiddleware, deleteEquipment);
+router.put("/edit-equipment/:id", authMiddleware, editEquipment);
+module.exports = router;

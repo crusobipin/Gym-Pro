@@ -1,0 +1,10 @@
+const express = require("express");
+const router = express.Router();
+const { addClass, getClasses, getClassById, deleteClass, editClass } = require("../controllers/class-controller");
+const authMiddleware = require("../middleware/auth-middleware");
+router.post("/add-class", authMiddleware, addClass);
+router.get("/get-classes", authMiddleware, getClasses);
+router.get("/get-class/:id", authMiddleware, getClassById);
+router.delete("/delete-class/:id", authMiddleware, deleteClass);
+router.put("/edit-class/:id", authMiddleware, editClass);
+module.exports = router;
